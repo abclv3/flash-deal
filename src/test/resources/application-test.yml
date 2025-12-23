@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: flash-deal-test
+
+  # H2 Database Configuration for Test
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # JPA Configuration for Test
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # Redis Configuration (테스트 시 로컬 Redis 필요)
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+# Logging for Test
+logging:
+  level:
+    com.portfolio.flashdeal: INFO
+    org.hibernate.SQL: DEBUG

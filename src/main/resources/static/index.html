@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Deal - 선착순 쿠폰 발급 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-value {
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .log-box {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            line-height: 1.5;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .comparison-table th {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+        }
+
+        .comparison-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .badge-danger {
+            background: #f5576c;
+            color: white;
+        }
+
+        .badge-success {
+            background: #00f2fe;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎟️ Flash Deal</h1>
+            <p>선착순 쿠폰 발급 시스템 - Redis 분산 락 동시성 제어</p>
+        </div>
+
+        <!-- 프로젝트 소개 -->
+        <div class="card">
+            <h2>📋 프로젝트 개요</h2>
+            <div class="info-box">
+                <h3>✨ 핵심 기능</h3>
+                <p>
+                    선착순 100명에게 쿠폰을 지급하는 이벤트 시 발생하는 <strong>동시성 문제(Race Condition)</strong>를 
+                    재현하고, <strong>Redisson 분산 락</strong>으로 해결하는 것을 실제로 확인할 수 있습니다.
+                </p>
+            </div>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>V1 (동시성 제어 없음)</th>
+                        <th>V2 (Redisson 분산 락)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>동시성 제어</strong></td>
+                        <td><span class="badge badge-danger">❌ 없음</span></td>
+                        <td><span class="badge badge-success">✅ Redisson RLock</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>예상 결과</strong></td>
+                        <td>재고 초과 발급 (Race Condition)</td>
+                        <td>정확히 재고만큼만 발급</td>
+                    </tr>
+                    <tr>
+                        <td><strong>사용 기술</strong></td>
+                        <td>JPA만 사용</td>
+                        <td>JPA + Redis + Redisson</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 쿠폰 생성 -->
+        <div class="card">
+            <h2>1️⃣ 쿠폰 생성</h2>
+            <div class="info-box">
+                <p>먼저 테스트할 쿠폰을 생성하세요. (기본값: 재고 100개)</p>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="createCoupon()">🎫 쿠폰 생성 (재고 100개)</button>
+                <button class="btn-success" onclick="getCouponStatus()">🔍 쿠폰 현황 조회</button>
+            </div>
+            <div class="status-box" id="couponStatus" style="display: none;">
+                <div class="status-item">
+                    <span class="status-label">쿠폰 ID:</span>
+                    <span class="status-value" id="couponId">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">쿠폰명:</span>
+                    <span class="status-value" id="couponName">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">전체 재고:</span>
+                    <span class="status-value" id="totalStock">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">발급된 수량:</span>
+                    <span class="status-value" id="issuedCount">-</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">남은 재고:</span>
+                    <span class="status-value" id="remainingStock">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 테스트 실행 -->
+        <div class="card">
+            <h2>2️⃣ 동시성 테스트 실행</h2>
+            <div class="info-box">
+                <h3>⚠️ 중요 안내</h3>
+                <p>
+                    실제 동시성 테스트는 <strong>JUnit 테스트 코드</strong>로 실행하세요!<br>
+                    아래 버튼은 단일 발급 테스트용입니다. (동시성 문제를 완벽히 재현하려면 멀티스레드 환경 필요)
+                </p>
+            </div>
+            <div class="button-group">
+                <button class="btn-danger" onclick="issueCouponV1()">⚠️ V1 발급 (동시성 제어 없음)</button>
+                <button class="btn-success" onclick="issueCouponV2()">✅ V2 발급 (분산 락)</button>
+            </div>
+        </div>
+
+        <!-- JUnit 테스트 안내 -->
+        <div class="card">
+            <h2>3️⃣ 완전한 동시성 테스트 (JUnit)</h2>
+            <div class="info-box">
+                <h3>🎯 멀티스레드 테스트 실행 방법</h3>
+                <p><strong>IntelliJ IDEA / Eclipse:</strong></p>
+                <ol style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li><code>src/test/java/com/portfolio/flashdeal/service/CouponConcurrencyTest.java</code> 파일 열기</li>
+                    <li>테스트 메서드 옆의 녹색 실행 버튼 클릭</li>
+                    <li>콘솔에서 결과 확인</li>
+                </ol>
+                <p style="margin-top: 15px;"><strong>터미널:</strong></p>
+                <pre style="background: #1e1e1e; color: #00ff00; padding: 15px; border-radius: 8px; margin-top: 10px;">gradlew test --tests CouponConcurrencyTest</pre>
+                <p style="margin-top: 15px;"><strong>예상 결과:</strong></p>
+                <ul style="margin-left: 20px; margin-top: 10px; line-height: 1.8;">
+                    <li>✅ <strong>V1 테스트</strong>: 100개를 초과하여 발급됨 (Race Condition 발생 확인)</li>
+                    <li>✅ <strong>V2 테스트</strong>: 정확히 100개만 발급됨 (분산 락으로 해결)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 로그 -->
+        <div class="card">
+            <h2>📝 실행 로그</h2>
+            <div class="log-box" id="logBox">
+                <div class="log-entry">[시스템] 준비 완료. 쿠폰을 생성하세요.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentCouponId = null;
+
+        function addLog(message, type = 'info') {
+            const logBox = document.getElementById('logBox');
+            const timestamp = new Date().toLocaleTimeString('ko-KR');
+            const color = type === 'error' ? '#ff6b6b' : type === 'success' ? '#51cf66' : '#00ff00';
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = color;
+            entry.textContent = `[${timestamp}] ${message}`;
+            logBox.appendChild(entry);
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        async function createCoupon() {
+            try {
+                addLog('쿠폰 생성 중...', 'info');
+                const response = await fetch('/api/coupons?name=신년특별쿠폰&stock=100', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                currentCouponId = data.id;
+                
+                addLog(`✅ 쿠폰 생성 완료! ID: ${data.id}`, 'success');
+                addLog(`   이름: ${data.name}`, 'success');
+                addLog(`   전체 재고: ${data.availableStock}개`, 'success');
+                
+                getCouponStatus();
+            } catch (error) {
+                addLog(`❌ 쿠폰 생성 실패: ${error.message}`, 'error');
+            }
+        }
+
+        async function getCouponStatus() {
+            if (!currentCouponId) {
+                addLog('⚠️ 먼저 쿠폰을 생성하세요.', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/coupons/${currentCouponId}`);
+                const data = await response.json();
+                
+                document.getElementById('couponStatus').style.display = 'block';
+                document.getElementById('couponId').textContent = data.id;
+                document.getElementById('couponName').textContent = data.name;
+                document.getElementById('totalStock').textContent = data.availableStock + '개';
+                document.getElementById('issuedCount').textContent = data.issuedCount + '개';
+                document.getElementById('remainingStock').textContent = data.remainingStock + '개';
+                
+                addLog('📊 쿠폰 현황 업데이트 완료', 'success');
+            } catch (error) {
+                addLog(`❌ 조회 실패: ${error.message}`, 'error');
+            }
+        }
+
+        async function issueCouponV1() {
+            if (!currentCouponId) {
+                addLog('⚠️ 먼저 쿠폰을 생성하세요.', 'error');
+                return;
+            }
+
+            try {
+                addLog('⚠️ V1 쿠폰 발급 시도 (동시성 제어 없음)...', 'info');
+                const response = await fetch(`/api/coupons/${currentCouponId}/issue-v1`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ V1 발급 성공! 발급 수: ${data.issuedCount}개, 남은 재고: ${data.remainingStock}개`, 'success');
+                } else {
+                    addLog(`❌ V1 발급 실패 (재고 부족)`, 'error');
+                }
+                
+                getCouponStatus();
+            } catch (error) {
+                addLog(`❌ V1 발급 오류: ${error.message}`, 'error');
+            }
+        }
+
+        async function issueCouponV2() {
+            if (!currentCouponId) {
+                addLog('⚠️ 먼저 쿠폰을 생성하세요.', 'error');
+                return;
+            }
+
+            try {
+                addLog('✅ V2 쿠폰 발급 시도 (Redisson 분산 락)...', 'info');
+                const response = await fetch(`/api/coupons/${currentCouponId}/issue-v2`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    addLog(`✅ V2 발급 성공! 발급 수: ${data.issuedCount}개, 남은 재고: ${data.remainingStock}개`, 'success');
+                } else {
+                    addLog(`❌ V2 발급 실패 (재고 부족)`, 'error');
+                }
+                
+                getCouponStatus();
+            } catch (error) {
+                addLog(`❌ V2 발급 오류: ${error.message}`, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
