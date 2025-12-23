@@ -42,3 +42,9 @@ out/
 ### Logs ###
 *.log
 logs/
+  
+### Personal Interview Prep (Private) ###  
+INTERVIEW_PREP.md  
+INSERT_AFTER_LINE_961.txt  
+chart_update_functions.js  
+temp_lines.txt 
